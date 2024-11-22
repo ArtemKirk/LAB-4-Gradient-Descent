@@ -67,11 +67,17 @@ class LinearRegression:
         # TODO: реализовать подбор весов для x и y
         
         while True:
-            if np.linalg.norm(x) < self.tolerance or np.all(np.isnan(self.descent.w)) or self.descent.lr.iteration >= self.max_iter:
-                break
-
+           
+            check = self.descent.w
             self.descent.w = self.descent.update_weights(self.descent.calc_gradient(x, y))
             self.loss_history.append(self.descent.calc_loss(x, y))
+
+            if np.linalg.norm(self.descent.w - check) < self.tolerance or np.all(np.isnan(self.descent.w)) or self.descent.lr.iteration >= self.max_iter:
+                # print(np.linalg.norm(self.descent.w - check))
+                break
+
+            # print(np.linalg.norm(self.descent.w - check), end='\r')
+
 
         return self.descent
     
