@@ -28,6 +28,7 @@ class LearningRate:
     __call__()
         Вычисляет скорость обучения на текущей итерации.
     """
+
     lambda_: float = 1e-3
     s0: float = 1
     p: float = 0.5
@@ -62,6 +63,7 @@ class LossFunction(Enum):
     Huber : auto
         Функция потерь Хьюбера.
     """
+
     MSE = auto()
     MAE = auto()
     LogCosh = auto()
@@ -104,7 +106,12 @@ class BaseDescent:
         Вычисление прогнозов на основе признаков x.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
+    def __init__(
+        self,
+        dimension: int,
+        lambda_: float = 1e-3,
+        loss_function: LossFunction = LossFunction.MSE,
+    ):
         """
         Инициализация базового класса для градиентного спуска.
 
@@ -264,7 +271,7 @@ class VanillaGradientDescent(BaseDescent):
             Градиент функции потерь по весам.
         """
         l = y.size
-        return (2/l) * (x.T @ x @ self.w - x.T @ y)
+        return (2 / l) * (x.T @ x @ self.w - x.T @ y)
 
 
 class StochasticDescent(VanillaGradientDescent):
@@ -287,8 +294,13 @@ class StochasticDescent(VanillaGradientDescent):
         Вычисление градиента функции потерь по мини-пакетам.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, batch_size: int = 50,
-                 loss_function: LossFunction = LossFunction.MSE):
+    def __init__(
+        self,
+        dimension: int,
+        lambda_: float = 1e-3,
+        batch_size: int = 50,
+        loss_function: LossFunction = LossFunction.MSE,
+    ):
 
         super().__init__(dimension, lambda_, loss_function)
         self.batch_size = batch_size
@@ -309,12 +321,14 @@ class StochasticDescent(VanillaGradientDescent):
         np.ndarray
             Градиент функции потерь по весам, вычисленный по мини-пакету.
         """
-            
-        # index = np.random.randint(low=0, high=y.size, size=(self.batch_size)) # не гарантирует уникальность индексов 
-        index = np.random.choice(np.arange(0, y.size), size=self.batch_size, replace=False) # Гарантирует уникальность индексов
+
+        # index = np.random.randint(low=0, high=y.size, size=(self.batch_size)) # не гарантирует уникальность индексов
+        index = np.random.choice(
+            np.arange(0, y.size), size=self.batch_size, replace=False
+        )  # Гарантирует уникальность индексов
         x = x[index]
         y = y[index]
-        return (2/self.batch_size) * (x.T @ x @ self.w - x.T @ y)
+        return (2 / self.batch_size) * (x.T @ x @ self.w - x.T @ y)
 
 
 class MomentumDescent(VanillaGradientDescent):
@@ -343,7 +357,12 @@ class MomentumDescent(VanillaGradientDescent):
         Обновление весов с использованием момента.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
+    def __init__(
+        self,
+        dimension: int,
+        lambda_: float = 1e-3,
+        loss_function: LossFunction = LossFunction.MSE,
+    ):
         """
         Инициализация класса градиентного спуска с моментом.
 
@@ -413,7 +432,12 @@ class Adam(VanillaGradientDescent):
         Обновление весов с использованием адаптивной оценки моментов.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
+    def __init__(
+        self,
+        dimension: int,
+        lambda_: float = 1e-3,
+        loss_function: LossFunction = LossFunction.MSE,
+    ):
         """
         Инициализация класса Adam.
 
@@ -454,8 +478,8 @@ class Adam(VanillaGradientDescent):
         self.m = self.beta_1 * self.m + (1 - self.beta_1) * gradient
         self.v = self.beta_2 * self.v + (1 - self.beta_2) * gradient**2
 
-        m_ = self.m / (1 - self.beta_1**(self.iteration + 1))
-        v_ = self.v / (1 - self.beta_2**(self.iteration + 1))
+        m_ = self.m / (1 - self.beta_1 ** (self.iteration + 1))
+        v_ = self.v / (1 - self.beta_2 ** (self.iteration + 1))
         return (self.w - self.lr() / (np.sqrt(v_) + self.eps) * m_) - self.w
 
 
@@ -507,7 +531,7 @@ class BaseDescentReg(BaseDescent):
         np.ndarray
             Градиент функции потерь с учетом L2 регуляризации по весам.
         """
-        l2_gradient: np.ndarray = np.zeros_like(x.shape[1])  
+        l2_gradient: np.ndarray = self.w
 
         return super().calc_gradient(x, y) + l2_gradient * self.mu
 
@@ -569,19 +593,23 @@ def get_descent(descent_config: dict) -> BaseDescent:
     >>> isinstance(descent, BaseDescent)
     True
     """
-    descent_name = descent_config.get('descent_name', 'full')
-    regularized = descent_config.get('regularized', False)
+    descent_name = descent_config.get("descent_name", "full")
+    regularized = descent_config.get("regularized", False)
 
     descent_mapping: Dict[str, Type[BaseDescent]] = {
-        'full': VanillaGradientDescent if not regularized else VanillaGradientDescentReg,
-        'stochastic': StochasticDescent if not regularized else StochasticDescentReg,
-        'momentum': MomentumDescent if not regularized else MomentumDescentReg,
-        'adam': Adam if not regularized else AdamReg
+        "full": (
+            VanillaGradientDescent if not regularized else VanillaGradientDescentReg
+        ),
+        "stochastic": StochasticDescent if not regularized else StochasticDescentReg,
+        "momentum": MomentumDescent if not regularized else MomentumDescentReg,
+        "adam": Adam if not regularized else AdamReg,
     }
 
     if descent_name not in descent_mapping:
-        raise ValueError(f'Incorrect descent name, use one of these: {descent_mapping.keys()}')
+        raise ValueError(
+            f"Incorrect descent name, use one of these: {descent_mapping.keys()}"
+        )
 
     descent_class = descent_mapping[descent_name]
 
-    return descent_class(**descent_config.get('kwargs', {}))
+    return descent_class(**descent_config.get("kwargs", {}))
