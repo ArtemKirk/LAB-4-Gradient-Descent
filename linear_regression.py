@@ -68,13 +68,15 @@ class LinearRegression:
         
         while True:
            
-            check = self.descent.w
-            self.descent.w = self.descent.update_weights(self.descent.calc_gradient(x, y))
-            self.loss_history.append(self.descent.calc_loss(x, y))
-
-            if np.linalg.norm(self.descent.w - check) < self.tolerance or np.all(np.isnan(self.descent.w)) or self.descent.lr.iteration >= self.max_iter:
+            step = self.descent.step(x, y)
+            
+            if np.linalg.norm(step) < self.tolerance or np.all(np.isnan(self.descent.w)) or len(self.loss_history) >= self.max_iter:
                 # print(np.linalg.norm(self.descent.w - check))
                 break
+
+            self.descent.w += step
+
+            self.loss_history.append(self.descent.calc_loss(x, y))
 
             # print(np.linalg.norm(self.descent.w - check), end='\r')
 

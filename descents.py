@@ -44,7 +44,7 @@ class LearningRate:
             Скорость обучения на текущем шаге.
         """
         self.iteration += 1
-        return self.lambda_ * (self.s0 / (self.s0 + self.iteration)) ** self.p
+        return self.lambda_ * np.power((self.s0 / (self.s0 + self.iteration)), self.p)
 
 
 class LossFunction(Enum):
@@ -147,7 +147,7 @@ class BaseDescent:
             Разность между текущими и обновленными весами.
         """
 
-        return self.update_weights(self.calc_gradient(x, y))
+        return np.clip(self.update_weights(self.calc_gradient(x, y)), -10e4, 10e4)
 
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
@@ -245,7 +245,7 @@ class VanillaGradientDescent(BaseDescent):
         np.ndarray
             Разность весов (w_{k + 1} - w_k).
         """
-        return self.w - self.lr() * gradient
+        return (self.w - self.lr() * gradient) - self.w
 
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
@@ -376,7 +376,7 @@ class MomentumDescent(VanillaGradientDescent):
             Разность весов (w_{k + 1} - w_k).
         """
         self.h = self.alpha * self.h + self.lr() * gradient
-        return self.w - self.h
+        return (self.w - self.h) - self.w
 
 
 class Adam(VanillaGradientDescent):
@@ -456,7 +456,7 @@ class Adam(VanillaGradientDescent):
 
         m_ = self.m / (1 - self.beta_1**(self.iteration + 1))
         v_ = self.v / (1 - self.beta_2**(self.iteration + 1))
-        return self.w - self.lr() / (np.sqrt(v_) + self.eps) * m_
+        return (self.w - self.lr() / (np.sqrt(v_) + self.eps) * m_) - self.w
 
 
 class BaseDescentReg(BaseDescent):
