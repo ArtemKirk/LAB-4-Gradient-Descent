@@ -188,7 +188,10 @@ class BaseDescent:
         np.ndarray
             Градиент функции потерь по весам. Этот метод должен быть реализован в подклассах.
         """
-        pass
+        if self.loss_function is LossFunction.MSE:
+            return x.T @ x @ self.w - x.T @ y
+        elif self.loss_function is LossFunction.LogCosh:
+            return x.T @ -np.tanh(y - x @ self.w)
 
     def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
         """
@@ -206,7 +209,10 @@ class BaseDescent:
         float
             Значение функции потерь.
         """
-        return np.sum(np.square(y - self.predict(x)))
+        if self.loss_function is LossFunction.MSE:
+            return np.mean(np.square(y - self.predict(x)))
+        elif self.loss_function is LossFunction.LogCosh:
+            return np.mean(np.log(np.cosh(y - self.predict(x))))
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
@@ -271,7 +277,7 @@ class VanillaGradientDescent(BaseDescent):
             Градиент функции потерь по весам.
         """
         l = y.size
-        return (2 / l) * (x.T @ x @ self.w - x.T @ y)
+        return super().calc_gradient(x, y) * (2 / l)
 
 
 class StochasticDescent(VanillaGradientDescent):
@@ -328,7 +334,8 @@ class StochasticDescent(VanillaGradientDescent):
         )  # Гарантирует уникальность индексов
         x = x[index]
         y = y[index]
-        return (2 / self.batch_size) * (x.T @ x @ self.w - x.T @ y)
+        l = y.size
+        return super().calc_gradient(x, y) * (l / 2) * (2 / self.batch_size)
 
 
 class MomentumDescent(VanillaGradientDescent):

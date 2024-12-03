@@ -34,7 +34,9 @@ class LinearRegression:
 
     """
 
-    def __init__(self, descent_config: dict, tolerance: float = 1e-4, max_iter: int = 300):
+    def __init__(
+        self, descent_config: dict, tolerance: float = 1e-4, max_iter: int = 300
+    ):
         """
         :param descent_config: gradient descent config
         :param tolerance: stopping criterion for square of euclidean norm of weight difference (float)
@@ -65,12 +67,16 @@ class LinearRegression:
 
         """
         # TODO: реализовать подбор весов для x и y
-        
+
         while True:
-           
+
             step = self.descent.step(x, y)
-            
-            if np.linalg.norm(step) < self.tolerance or np.all(np.isnan(self.descent.w)) or len(self.loss_history) >= self.max_iter:
+
+            if (
+                np.linalg.norm(step) < self.tolerance
+                or np.all(np.isnan(self.descent.w))
+                or len(self.loss_history) >= self.max_iter
+            ):
                 # print(np.linalg.norm(self.descent.w - check))
                 break
 
@@ -80,10 +86,7 @@ class LinearRegression:
 
             # print(np.linalg.norm(self.descent.w - check), end='\r')
 
-
         return self.descent
-    
-    
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
